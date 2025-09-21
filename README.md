@@ -18,3 +18,10 @@ In this section, as I upload new scripts, I'll provide a very brief description 
     This script compares $\alpha-\beta$ (GH) and  $\alpha-\beta-\gamma$ (GHK) filters with a 1st order low pass filter. It shows that during portions of constatnt velocity and/or constant acceleration, the GH and GHK filters respectivly outperform the low pass filter with similar performance at constant values. However, it hsould be noted, that the GH and GHK filters have some "inertia" and thus don't handle sharp transients as well.
   
 - Kalman_1D.py
+
+  This script generates a 1st order system subject to random disturbances, and random noise in the measurement. From these noisy measurements, an ARX model is fit. This ARX model is then used in the Kalman filter to perform the prediction portion step. Lastly, the following are all plotted on the same plot:
+  - Step input
+  - The "ideal" system. That is, no process or measurement noise
+  - The measured sugnal
+  - The measured signal filtered with a single pole low pass filter
+  - The measured signal filtered wiht the Kalman filter
