@@ -28,3 +28,6 @@ As I upload new scripts, I provide brief descriptions of what each script does a
     - The identified model signal
     - The measured signal filtered with a single-pole low-pass filter
     - The measured signal filtered with the Kalman filter
+
+## Disclaimer
+ChatGPT was used to help accelerate the development of various "accessory" classes, such as the ARX class and the State Space class. However, all code has been thoroughly vetted by myself, and **all** code for the various filters has been fully written by me. ChatGPT was also used for formatting and correcting typos in this `.md` file.
