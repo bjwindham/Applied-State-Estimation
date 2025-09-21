@@ -5,7 +5,10 @@ Repository of code generated while studying applied state estimation from RJ Lab
 
 ## File descriptions
 In this section, as I upload new scripts, I'll provide a very brief description of what each script is/what it's used for, and the python dependencies to run it.
-- Applied_State_Estimation.pdf - This is my running document of notes from my textbooks. **Please note** that some sections of this document aren't entirely original or perfectly paraphrased. This document is largely just to help me extract and remember important sections.
+- Applied_State_Estimation.pdf
+  
+    This is my running document of notes from my textbooks. **Please note** that some sections of this document aren't entirely original or perfectly paraphrased. This document is largely just to help me extract and remember important sections.
+  
 - FilterLib.py
 - First_order_noise_filtering.py
 - Kalman_1D.py
