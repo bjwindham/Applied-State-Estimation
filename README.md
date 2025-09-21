@@ -25,5 +25,6 @@ As I upload new scripts, I provide brief descriptions of what each script does a
     - Step input
     - The "ideal" system (no process or measurement noise)
     - The measured signal
+    - The identified model signal
     - The measured signal filtered with a single-pole low-pass filter
     - The measured signal filtered with the Kalman filter
