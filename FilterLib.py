@@ -96,6 +96,7 @@ class PID:
         self.ki = ki
         self.kd = kd
         self.err_sum = 0
+        self.last_error = 0
         self.last_state = 0
         self.last_state_2nd = 0
         self.dt = dt
@@ -219,11 +220,72 @@ class StateSpaceSimulator:
         y = self.C @ self.x + self.D @ u + v
         return y
 
+class RK2:
+    def __init__(self, f):
+        self.f = f
+        
+    def step(self, t, x, u, h):
+        k1 = self.f(t, x, u, h)
+        k2 = self.f(t + 0.5 * h, x + 0.5 * h * k1, u, h)
+        return x + h * k2
 
+class RK4:       
+    def __init__(self, f):
+        self.f = f
         
+    def step(self, t, x, u, h):
+        k1 = self.f(t, x, u, h)
+        k2 = self.f(t + 0.5 * h, x + 0.5 * h * k1, u, h)
+        k3 = self.f(t + 0.5 * h, x + 0.5 * h * k2, u, h)
+        k4 = self.f(t + h, x +  h * k3, u, h)
+        return x + h/6*(k1 + 2*k2 + 2*k3 + k4)
         
-        
-        
+import numpy as np
+
+class KalmanFilterND:
+    def __init__(self, A, B, C, D, Q, R, x0=None, P0=None):
+        self.A = np.atleast_2d(A)
+        self.B = np.atleast_2d(B)
+        self.C = np.atleast_2d(C)
+        self.D = np.atleast_2d(D)
+
+        self.n = self.A.shape[0]   # State vector dimesnion
+        self.m = self.B.shape[1]   # Input vector dimension
+        self.p = self.C.shape[0]   # Measurment dimension
+
+        self.Q = np.atleast_2d(Q)
+        self.R = np.atleast_2d(R)
+
+        self.x = np.zeros((self.n, 1)) if x0 is None else np.atleast_2d(x0).reshape(-1, 1)
+        self.P = np.eye(self.n) if P0 is None else np.atleast_2d(P0)
+
+    def predict(self, u=None):
+        if u is None:
+            u = np.zeros((self.m, 1))
+        else:
+            u = np.atleast_2d(u).reshape(-1, 1)
+
+        self.x = self.A @ self.x + self.B @ u
+        self.P = self.A @ self.P @ self.A.T + self.Q
+        return self.x
+
+    def update(self, z, u=None):
+        if u is None:
+            u = np.zeros((self.m, 1))
+        else:
+            u = np.atleast_2d(u).reshape(-1, 1)
+
+        z = np.atleast_2d(z).reshape(-1, 1)
+
+        y = z - (self.C @ self.x + self.D @ u)
+        S = self.C @ self.P @ self.C.T + self.R
+        K = self.P @ self.C.T @ np.linalg.inv(S)
+
+        self.x = self.x + K @ y
+        I = np.eye(self.n)
+        self.P = (I - K @ self.C) @ self.P
+        return self.x
+     
         
         
         
