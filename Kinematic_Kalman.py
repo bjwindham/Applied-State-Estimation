@@ -33,7 +33,7 @@ plt.grid(True)
 plt.show()
 
 
-# State transition F (6x6) — from your Overleaf
+# State transition F
 F = np.array([
     [1, 0,    dt, 0,  0.5*dt**2, 0],
     [0, 1,    0,  dt, 0,         0.5*dt**2],
@@ -43,16 +43,16 @@ F = np.array([
     [0, 0,    0,  0,  0,         1]
 ], dtype=float)
 
-# Measurement matrix H: measuring positions only (x, y)
+# Measurement matrix H:
 H = np.array([
     [1, 0, 0, 0, 0, 0],
     [0, 1, 0, 0, 0, 0]
 ], dtype=float)
 
-# Measurement covariance R (2x2)
+# Measurement covariance R
 R = 0.2 * np.eye(2)
 
-# Q as given in your LaTeX, multiplied by scalar phi
+# Process noise
 phi = 0.02
 Q = np.array([
     [ (1/20) * dt**5,     0,                (1/8) * dt**4,     0,                (1/6) * dt**3, 0              ],
@@ -63,7 +63,7 @@ Q = np.array([
     [ 0,                  (1/6) * dt**3,    0,                 (1/2) * dt**2,   0,              dt             ]
 ], dtype=float) * phi
 
-# --- initial state and covariance (example) ---
+# Initial state and covariance
 x0 = np.zeros(6)
 P0 = np.eye(6) * 100.0
 
@@ -76,23 +76,17 @@ kf = KalmanFilterND(F, B, H, D, Q, R, x0=x0, P0=P0)
 filtered_vals = []
 
 for i in range(N):
-    # Prediction step
+
     kf.predict()
-    
-    # Update step with measurement
     x_est = kf.update(np.array([x_meas[i], y_meas[i]]))
-    
-    # Store the estimated state vector
     filtered_vals.append(x_est.copy())
 
-# Convert list to array for easy indexing
-filtered_vals = np.array(filtered_vals)
 
-# Extract estimated x and y
+filtered_vals = np.array(filtered_vals)
 x_filt = filtered_vals[:, 0]
 y_filt = filtered_vals[:, 1]
 
-# --- Plot results ---
+# Plot results
 import matplotlib.pyplot as plt
 
 plt.figure(figsize=(8, 6))
