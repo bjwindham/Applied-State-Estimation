@@ -18,7 +18,7 @@ As I upload new scripts, I provide brief descriptions of what each script does a
     I may eventually split these into separate files so that system identification, controllers, estimators, and system simulation code are organized individually.
 
 - **First_order_noise_filtering.py**  
-    This script compares the $\alpha$-$\beta$ (GH) and $\alpha$-$\beta$-$\gamma$ (GHK) filters with a 1st-order low-pass filter. It demonstrates that during portions of constant velocity and/or constant acceleration, the GH and GHK filters respectively outperform the low-pass filter, while performing similarly at constant values. Note that GH and GHK filters have some "inertia" and may not handle sharp transients as effectively.
+    This script compares the $\alpha - \beta$ (GH) and $\alpha - \beta - \gamma$ (GHK) filters with a 1st-order low-pass filter. It demonstrates that during portions of constant velocity and/or constant acceleration, the GH and GHK filters respectively outperform the low-pass filter, while performing similarly at constant values. Note that GH and GHK filters have some "inertia" and may not handle sharp transients as effectively.
 
 - **Kalman_1D.py**  
     This script generates a 1st-order system subject to random process disturbances and measurement noise. From the noisy measurements, an ARX model is fit, which is then used in the Kalman filter for the prediction step. The following are plotted on the same figure:
