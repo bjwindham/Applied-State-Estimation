@@ -258,6 +258,13 @@ class KalmanFilterND:
 
         self.x = np.zeros((self.n, 1)) if x0 is None else np.atleast_2d(x0).reshape(-1, 1)
         self.P = np.eye(self.n) if P0 is None else np.atleast_2d(P0)
+        
+        self.gate = False
+        self.gating_dist = 5.0
+        
+    def set_gate(self, use_gate, outlier_distance):
+            self.gate = use_gate
+            self.gating_dist = outlier_distance
 
     def predict(self, u=None):
         if u is None:
@@ -268,6 +275,7 @@ class KalmanFilterND:
         self.x = self.A @ self.x + self.B @ u
         self.P = self.A @ self.P @ self.A.T + self.Q
         return self.x
+    
 
     def update(self, z, u=None):
         if u is None:
@@ -278,8 +286,16 @@ class KalmanFilterND:
         z = np.atleast_2d(z).reshape(-1, 1)
 
         y = z - (self.C @ self.x + self.D @ u)
+        y = np.atleast_2d(y).reshape(-1, 1)
+        
         S = self.C @ self.P @ self.C.T + self.R
         K = self.P @ self.C.T @ np.linalg.inv(S)
+        
+        if self.gate:
+            Mahalanobis = np.sqrt(y.T @ np.linalg.pinv(S) @ y)  
+            if Mahalanobis > self.gating_dist:
+                print("Measurement Gated. Returning prior.")
+                return self.x
 
         self.x = self.x + K @ y
         I = np.eye(self.n)
