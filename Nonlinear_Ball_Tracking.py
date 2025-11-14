@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import FilterLib as filt
+from scipy.linalg import expm
 
 
 def ball_dynamics(t, x, u, h):
@@ -88,36 +89,79 @@ u = np.array([[g]])
 
 # Loop over measurements
 for k in range(N):
-    z = noisy_measurements[k]  # current measurement [x, y]
-    
-    # --- Prediction step ---
+    z = noisy_measurements[k]
+
     kf.predict(u=u)
-    
-    # --- Update step ---
     kf.update(z)
-    
-    # --- Store current estimate ---
     x_estimates[k, :] = kf.x.ravel()
     
+#%% Linear drag Kalman filter
+
+c_lin = 10.0
+m = 1.0
+
+# Continuous
+A_c = np.array([
+    [0.0, 0.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0, 1.0],
+    [0.0, 0.0,-c_lin/m, 0.0],
+    [0.0, 0.0, 0.0,-c_lin/m]
+])
+
+# Discrete
+A_drag = expm(A_c * h)
+
+# Discrete-time A (first-order Euler)
+# A_drag = np.eye(4) + A_c * h + A_c@A_c *h**2/2
+
+B = np.array([[0.0],
+              [0.5 * h**2],
+              [0.0],
+              [h]])
+
+C = np.array([[1, 0, 0, 0],
+              [0, 1, 0, 0]])
+
+D = np.zeros((2, 1))
+
+# Covariances 
+Q_drag = np.eye(4) * 0.005   
+R = np.eye(2) * 0.2       
+
+# Initial state and covariance
+x0 = np.array([[0.0], [0.0], [30.0], [30.0]])
+P0 = np.eye(4)
+
+# Instantiate linear-drag Kalman filter
+kf_drag = filt.KalmanFilterND(A_drag, B, C, D, Q_drag, R, x0=x0, P0=P0) 
+
+x_est_drag = np.zeros((N, 4))
+
+for k in range(N):
+    z = noisy_measurements[k]           
+    kf_drag.predict(u=u)                
+    kf_drag.update(z)                   
+    x_est_drag[k, :] = kf_drag.x.ravel()
+
 #%% UKF Implementation
 
-# UKF process function using your existing RK4 dynamics
+# UKF process function
 def f_nl(x, u, dt):
     return rk4.step(0, x, u, dt)
 
-# UKF measurement function: position only
+# UKF measurement function
 def h_pos(x):
     return x[:2]
 
-n = 4  # state: [x, y, vx, vy]
-m = 2  # measurement: [x, y]
+n = 4  # state dimension
+m = 2  # measurement dimension
 
 ukf = filt.UKF(
     n=n,
     m=m,
     f=f_nl,
     h=h_pos,
-    Q=np.eye(n)*0.002,  # tune similarly to KF
+    Q=np.eye(n)*0.005,
     R=np.eye(m)*0.2,
     x0=x0,
     P0=P0
@@ -132,26 +176,35 @@ for k in range(N):
 
 
 #%% Plot the ball's trajectory
+
 plt.figure(figsize=(6, 4))
 
 # True trajectory
-plt.plot(trajectory[:, 0], trajectory[:, 1], label="True trajectory", lw=2)
+plt.plot(trajectory[:, 0], trajectory[:, 1], 
+         color='purple', label="True trajectory", lw=2)
 
 # Noisy measurements
 plt.scatter(noisy_measurements[:, 0], noisy_measurements[:, 1], 
             s=10, alpha=0.6, label="Noisy measurements")
 
-# Kalman Filter estimates
-plt.plot(x_estimates[:, 0], x_estimates[:, 1], color='g', lw=2, label="KF estimate")
+# Constant-Velocity KF estimates
+plt.plot(x_estimates[:, 0], x_estimates[:, 1], 
+         color='g', lw=2, label="KF (CV model)")
+
+# Linear Drag KF estimates (new model)
+plt.plot(x_est_drag[:, 0], x_est_drag[:, 1], 
+         color='orange', lw=2, label="KF (Linear drag model)")
 
 # UKF estimates
-plt.plot(ukf_estimates[:, 0], ukf_estimates[:, 1], color='r', lw=2, label="UKF estimate")
+plt.plot(ukf_estimates[:, 0], ukf_estimates[:, 1], 
+         color='r', lw=2, label="UKF estimate")
 
 plt.xlabel("x (m)")
 plt.ylabel("y (m)")
-plt.title("2D Projectile Tracking: True vs Noisy vs KF vs UKF")
+plt.title("2D Projectile Tracking: True vs Noisy vs KF (CV) vs KF (Drag) vs UKF")
 plt.grid(True)
-plt.axis("equal")   # keep physical scaling consistent
+plt.axis("equal")
 plt.legend()
 plt.show()
+
 
